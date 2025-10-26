@@ -293,13 +293,6 @@ Thanks to all our amazing contributors!
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/Janmesh23">
-                    <img src="https://avatars.githubusercontent.com/u/183159485?v=4" width="100;" alt="Janmesh23"/>
-                    <br />
-                    <sub><b>Janmesh </b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/Akash29g">
                     <img src="https://avatars.githubusercontent.com/u/77738997?v=4" width="100;" alt="Akash29g"/>
                     <br />
