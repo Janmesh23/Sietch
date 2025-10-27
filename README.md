@@ -309,6 +309,13 @@ Thanks to all our amazing contributors!
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/cjtaylor1990">
+                    <img src="https://avatars.githubusercontent.com/u/9288608?v=4" width="100;" alt="cjtaylor1990"/>
+                    <br />
+                    <sub><b>Corbin Taylor</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/Deepam02">
                     <img src="https://avatars.githubusercontent.com/u/116721751?v=4" width="100;" alt="Deepam02"/>
                     <br />
