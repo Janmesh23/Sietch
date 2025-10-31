@@ -4,6 +4,7 @@
 [![Release](https://github.com/substantialcattle5/sietch/actions/workflows/release.yml/badge.svg)](https://github.com/substantialcattle5/sietch/actions/workflows/release.yml)
 [![codecov](https://codecov.io/gh/substantialcattle5/sietch/branch/main/graph/badge.svg)](https://codecov.io/gh/substantialcattle5/sietch)
 [![Go Report Card](https://goreportcard.com/badge/github.com/substantialcattle5/sietch)](https://goreportcard.com/report/github.com/substantialcattle5/sietch)
+[![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=Clone&query=count&url=https://gist.githubusercontent.com/SubstantialCattle5/a8c741d7828edd5af9f6128e583ff9a7/raw/clone.json&logo=github)](https://github.com/SubstantialCattle5/Sietch)
 
 Sietch creates self-contained encrypted vaults that can sync over LAN, sneakernet (USB drives), or weak WiFi networks. It operates fully offline, using chunked data, encryption, and peer-to-peer protocols to ensure your files are always protected and available—even when the internet is not.
 
@@ -11,9 +12,9 @@ Sietch creates self-contained encrypted vaults that can sync over LAN, sneakerne
 
 Sietch Vault is designed for environments where:
 
-* Internet is scarce, censored, or unreliable
-* Data privacy is a necessity, not an optional feature
-* People work nomadically—researchers, journalists, activists
+- Internet is scarce, censored, or unreliable
+- Data privacy is a necessity, not an optional feature
+- People work nomadically—researchers, journalists, activists
 
 ## Quick Start
 
@@ -28,12 +29,14 @@ make build
 ### Basic Usage
 
 **Create a vault**
+
 ```bash
 sietch init --name dune --key-type aes        # AES-256-GCM encryption
 sietch init --name dune --key-type chacha20   # ChaCha20-Poly1305 encryption
 ```
 
 **Add files**
+
 ```bash
 # Single file
 sietch add ./secrets/thumper-plans.pdf documents/
@@ -46,6 +49,7 @@ sietch add ~/photos/img1.jpg ~/photos/img2.jpg vault/photos/
 ```
 
 **Sync over LAN**
+
 ```bash
 sietch sync /ip4/192.168.1.42/tcp/4001/p2p/QmPeerID
 # or auto-discover peers
@@ -53,6 +57,7 @@ sietch sync
 ```
 
 **Retrieve files**
+
 ```bash
 sietch get thumper-plans.pdf ./retrieved/
 ```
@@ -70,30 +75,38 @@ sietch get thumper-plans.pdf ./retrieved/
 ## How It Works
 
 ### Chunking & Deduplication
-* Files are split into configurable chunks (default: 4MB)
-* Identical chunks across files are deduplicated to save space
-* Please Refer [this](internal/deduplication/README.md) documentation to understand how Deduplication works.
+
+- Files are split into configurable chunks (default: 4MB)
+- Identical chunks across files are deduplicated to save space
+- Please Refer [this](internal/deduplication/README.md) documentation to understand how Deduplication works.
 
 ### Encryption
+
 Each chunk is encrypted before storage using:
-* **Symmetric**: AES-256-GCM or ChaCha20-Poly1305 with passphrase
-* **Asymmetric**: GPG-compatible public/private keypairs
+
+- **Symmetric**: AES-256-GCM or ChaCha20-Poly1305 with passphrase
+- **Asymmetric**: GPG-compatible public/private keypairs
 
 ### Peer Discovery
+
 Peers discover each other via:
-* LAN gossip (UDP broadcast)
-* Manual IP whitelisting
-* QR-code sharing *(coming soon)*
+
+- LAN gossip (UDP broadcast)
+- Manual IP whitelisting
+- QR-code sharing _(coming soon)_
 
 ### Syncing
+
 Inspired by rsync, Sietch only transfers:
-* Missing chunks
-* Changed metadata
-* Over encrypted TCP connections with optional compression
+
+- Missing chunks
+- Changed metadata
+- Over encrypted TCP connections with optional compression
 
 ## Available Commands
 
 ### Core Operations
+
 ```bash
 sietch init [flags]                    # Initialize a new vault
 sietch add <source> <destination> [args...]  # Add files to vault (multiple file support)
@@ -103,6 +116,7 @@ sietch delete <filename>               # Delete files from vault
 ```
 
 ### Network Operations
+
 ```bash
 sietch discover [flags]                # Discover peers on local network
 sietch sync [peer-address]             # Sync with other vaults
@@ -110,6 +124,7 @@ sietch sneak [flags]                   # Transfer via sneakernet (USB)
 ```
 
 ### Management
+
 ```bash
 sietch dedup stats                     # Show deduplication statistics
 sietch dedup gc                        # Run garbage collection
@@ -120,6 +135,7 @@ sietch scaffold [flags]                # Create vault from template
 ## Advanced Usage
 
 **View vault contents**
+
 ```bash
 sietch ls                              # List all files
 sietch ls docs/                        # List files in specific directory
@@ -127,6 +143,7 @@ sietch ls --long                       # Show detailed information
 ```
 
 **Network synchronization**
+
 ```bash
 sietch discover                        # Find peers automatically
 sietch sync                            # Auto-discover and sync
@@ -134,6 +151,7 @@ sietch sync /ip4/192.168.1.5/tcp/4001/p2p/QmPeerID  # Sync with specific peer
 ```
 
 **Sneakernet transfer**
+
 ```bash
 sietch sneak                           # Interactive mode
 sietch sneak --source /media/usb/vault # Transfer from USB vault
@@ -141,6 +159,7 @@ sietch sneak --dry-run --source /backup/vault  # Preview transfer
 ```
 
 **Deduplication management**
+
 ```bash
 sietch dedup stats                     # Show statistics
 sietch dedup gc                        # Clean unreferenced chunks
@@ -168,26 +187,29 @@ sietch manifest
 ## Development
 
 ### Prerequisites
-* **Go 1.23+** – [Download](https://golang.org/dl/)
-* **Git** – Version control
+
+- **Go 1.23+** – [Download](https://golang.org/dl/)
+- **Git** – Version control
 
 ### Quick Development Setup
 
 1. **Clone and setup**
-    ```bash
-    git clone https://github.com/substantialcattle5/sietch.git
-    cd sietch
-    ./scripts/setup-hooks.sh
-    ```
+
+   ```bash
+   git clone https://github.com/substantialcattle5/sietch.git
+   cd sietch
+   ./scripts/setup-hooks.sh
+   ```
 
 2. **Verify installation**
-    ```bash
-    make check-versions
-    make build
-    make test
-    ```
+   ```bash
+   make check-versions
+   make build
+   make test
+   ```
 
 ### Available Commands
+
 ```bash
 make help            # List all commands
 make dev             # Format, test, build
@@ -203,6 +225,7 @@ For detailed development guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 We welcome contributions of all kinds! Whether you're fixing bugs, adding features, improving documentation, or enhancing UX.
 
 **Quick contribution steps:**
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/stillsuit`
 3. Make your changes following our [style guidelines](CONTRIBUTING.md#styleguides)
@@ -210,6 +233,7 @@ We welcome contributions of all kinds! Whether you're fixing bugs, adding featur
 5. Push and open a Pull Request
 
 See our [Contributing Guide](CONTRIBUTING.md) for detailed information about:
+
 - Development environment setup
 - Code style guidelines
 - Testing requirements
@@ -218,9 +242,10 @@ See our [Contributing Guide](CONTRIBUTING.md) for detailed information about:
 ## Inspiration & Credits
 
 Sietch draws inspiration from:
-* **Syncthing** - Decentralized file synchronization
-* **IPFS** - Content-addressed storage
-* **Obsidian Sync** - Seamless cross-device syncing
+
+- **Syncthing** - Decentralized file synchronization
+- **IPFS** - Content-addressed storage
+- **Obsidian Sync** - Seamless cross-device syncing
 
 Built with ❤️ in Go by the open source community.
 
@@ -268,6 +293,13 @@ Thanks to all our amazing contributors!
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/Janmesh23">
+                    <img src="https://avatars.githubusercontent.com/u/183159485?v=4" width="100;" alt="Janmesh23"/>
+                    <br />
+                    <sub><b>Janmesh </b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/Akash29g">
                     <img src="https://avatars.githubusercontent.com/u/77738997?v=4" width="100;" alt="Akash29g"/>
                     <br />
@@ -281,6 +313,13 @@ Thanks to all our amazing contributors!
                     <img src="https://avatars.githubusercontent.com/u/109236275?v=4" width="100;" alt="anuja12mishra"/>
                     <br />
                     <sub><b>Anuja Mishra</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/cjtaylor1990">
+                    <img src="https://avatars.githubusercontent.com/u/9288608?v=4" width="100;" alt="cjtaylor1990"/>
+                    <br />
+                    <sub><b>Corbin Taylor</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -308,4 +347,4 @@ Licensed under the **MIT License** – see the [LICENSE](LICENSE) file for detai
 
 ---
 
-> *"When you live in the desert, you develop a very strong survival instinct."* – Chani, *Dune*
+> _"When you live in the desert, you develop a very strong survival instinct."_ – Chani, _Dune_

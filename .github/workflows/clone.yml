@@ -1,0 +1,118 @@
+name: GitHub Clone Count Update Everyday
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Run daily at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+      
+      - name: gh login
+        run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
+
+      - name: parse latest clone count
+        run: |
+          curl --user "${{ github.actor }}:${{ secrets.GH_PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/traffic/clones \
+            > clone.json
+
+      - name: create gist and download previous count
+        id: set_id
+        run: |
+          # Check if GIST_ID secret exists and is not empty
+          if [ -n "${{ secrets.GIST_ID }}" ]; then
+              echo "GIST_ID found: ${{ secrets.GIST_ID }}"
+              echo "GIST=${{ secrets.GIST_ID }}" >> $GITHUB_OUTPUT
+              curl -f https://gist.githubusercontent.com/${{ github.actor }}/${{ secrets.GIST_ID }}/raw/clone.json > clone_before.json 2>/dev/null || cp clone.json clone_before.json
+              if cat clone_before.json | grep '404: Not Found' 2>/dev/null; then
+                echo "GIST_ID not valid anymore. Creating another gist..."
+                gist_id=$(gh gist create clone.json | awk -F / '{print $NF}')
+                echo "New GIST_ID: $gist_id"
+                echo $gist_id | gh secret set GIST_ID
+                echo "GIST=$gist_id" >> $GITHUB_OUTPUT
+                cp clone.json clone_before.json
+                git rm --ignore-unmatch  CLONE.md
+              fi
+          else
+              echo "GIST_ID not found. Creating a gist..."
+              gist_id=$(gh gist create clone.json | awk -F / '{print $NF}')
+              echo "Created GIST_ID: $gist_id"
+              echo $gist_id | gh secret set GIST_ID
+              echo "GIST=$gist_id" >> $GITHUB_OUTPUT
+              cp clone.json clone_before.json
+          fi
+          
+          # Ensure clone_before.json has valid content for the Python script
+          if [ ! -s clone_before.json ] || ! jq empty clone_before.json 2>/dev/null; then
+            echo "clone_before.json is empty or invalid, using current clone.json"
+            cp clone.json clone_before.json
+          fi
+
+      - name: update clone.json
+        run: |
+          curl https://raw.githubusercontent.com/MShawon/github-clone-count-badge/master/main.py > main.py
+          python3 main.py
+
+      - name: Update gist with latest count
+        run: |
+          content=$(sed -e 's/\\/\\\\/g' -e 's/\t/\\t/g' -e 's/\"/\\"/g' -e 's/\r//g' "clone.json" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
+          echo '{"description": "${{ github.repository }} clone statistics", "files": {"clone.json": {"content": "'"$content"'"}}}' > post_clone.json
+          curl -s -X PATCH \
+            --user "${{ github.actor }}:${{ secrets.GH_PAT }}" \
+            -H "Content-Type: application/json" \
+            -d @post_clone.json https://api.github.com/gists/${{ steps.set_id.outputs.GIST }} > /dev/null 2>&1
+
+      - name: Update README with clone badge
+        run: |
+          GIST_ID="${{ steps.set_id.outputs.GIST }}"
+          
+          echo "GIST_ID: $GIST_ID"
+          
+          # Only update if we have a valid GIST_ID
+          if [ -n "$GIST_ID" ]; then
+            shields="https://img.shields.io/badge/dynamic/json?color=success&label=Clone&query=count&url="
+            url="https://gist.githubusercontent.com/${{ github.actor }}/${GIST_ID}/raw/clone.json"
+            repo="https://github.com/${{ github.repository }}"
+            badge="[![GitHub Clones](${shields}${url}&logo=github)](${repo})"
+            
+            echo "Generated badge: $badge"
+            
+            # Check if badge already exists in README
+            if ! grep -q "GitHub Clones" README.md; then
+              echo "Badge not found in README, adding it..."
+              # Escape special characters for sed (especially & which means "matched pattern")
+              escaped_badge=$(echo "$badge" | sed 's/[&/\]/\\&/g')
+              # Replace the comment placeholder with the actual badge
+              sed -i 's|<!-- Clone badge will be auto-generated after first workflow run -->|'"$escaped_badge"'|g' README.md
+              
+              echo "README after replacement:"
+              head -n 10 README.md
+              
+              git config --global user.name "GitHub Action"
+              git config --global user.email "action@github.com"
+              git add README.md
+              
+              if git diff --staged --quiet; then
+                echo "No changes to commit"
+              else
+                echo "Committing changes..."
+                git commit -m "Add clone count badge to README"
+                git push origin main
+                echo "Changes pushed successfully"
+              fi
+            else
+              echo "Badge already exists in README, skipping update"
+            fi
+          else
+            echo "No GIST_ID found, skipping README update"
+          fi
+
